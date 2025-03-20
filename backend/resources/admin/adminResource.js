@@ -25,10 +25,10 @@ adminResource.get("/:id", tokenRequired, async (req, res) => {
         .json({ status: false, message: "Admin not found." });
     }
 
-    res.status(200).json({ status: true, data: admin });
+    res.status(200).json({ status: true, data: admin }); //data.data
   } catch (error) {
     console.error("Error fetching admin:", error);
-    res.status(500).json({ status: false, message: "Internal Server Error." });
+    res.status(500).json({ status: false, message: error.message }); //data.message
   }
 });
 

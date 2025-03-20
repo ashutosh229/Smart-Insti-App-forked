@@ -26,18 +26,18 @@ adminAuthRouter.post("/register", async (req, res) => {
     // Basic validation
     if (!email || !password || !name) {
       return res
-        .status(400)
+        .status(401)
         .json({ status: false, message: "All fields are required." });
     }
 
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       return res
-        .status(400)
+        .status(402)
         .json({ status: false, message: "Invalid email format." });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({
+      return res.status(403).json({
         status: false,
         message: "Password must be at least 6 characters.",
       });
@@ -47,7 +47,7 @@ adminAuthRouter.post("/register", async (req, res) => {
     const existingUser = await Admin.findOne({ email }).lean();
     if (existingUser) {
       return res
-        .status(409)
+        .status(400)
         .json({ status: false, message: messages.userAlreadyExists });
     }
 
@@ -55,13 +55,11 @@ adminAuthRouter.post("/register", async (req, res) => {
     const admin = await Admin.create({ email, name, password: password });
 
     res
-      .status(201)
-      .json({ status: true, message: messages.userCreated, data: admin });
+      .status(200)
+      .json({ status: true, message: messages.userCreated, data: admin }); //data.data
   } catch (error) {
     console.error("Error registering admin:", error);
-    res
-      .status(500)
-      .json({ status: false, message: messages.internalServerError });
+    res.status(500).json({ status: false, message: error.message }); //data.message
   }
 });
 
@@ -72,7 +70,7 @@ adminAuthRouter.post("/login", loginLimiter, async (req, res) => {
 
     if (!email || !password) {
       return res
-        .status(400)
+        .status(401)
         .json({ status: false, message: "Email and password are required." });
     }
 
@@ -80,15 +78,15 @@ adminAuthRouter.post("/login", loginLimiter, async (req, res) => {
 
     if (!user) {
       return res
-        .status(401)
-        .json({ status: false, message: "Invalid credentials." });
+        .status(400)
+        .json({ status: false, message: messages.userNotFound });
     }
 
     const isMatch = await bcryptjs.compare(password, user.password);
     if (!isMatch) {
       return res
-        .status(401)
-        .json({ status: false, message: "Invalid credentials." });
+        .status(400)
+        .json({ status: false, message: messages.incorrectPassword });
     }
 
     // Generate JWT token with expiration & secure signing
@@ -98,7 +96,7 @@ adminAuthRouter.post("/login", loginLimiter, async (req, res) => {
     });
 
     res.status(200).json({
-      token,
+      token: token,
       _id: user._id,
       name: user.name,
       email: user.email,

@@ -66,6 +66,7 @@ otpRouter.post("/send-otp", async (req, res) => {
           .json({ status: false, message: messages.failedToSendOTPEmail });
       }
       console.log("Message sent: %s", info.response);
+      res.json({ message: messages.otpSent + " to " + email });
     });
 
     // Store OTP in DB
@@ -99,7 +100,7 @@ otpRouter.post("/verify-otp", async (req, res) => {
     const otpCollection = db.collection(otpCollectionName);
     const record = await otpCollection.findOne({ email });
 
-    if (!record) {
+    if (!record || !record.otp) {
       return res
         .status(400)
         .json({ status: false, message: messages.otpExpired });

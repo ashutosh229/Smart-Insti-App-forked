@@ -145,7 +145,7 @@ generalAuthRouter.post("/login", async (req, res) => {
 
     if (!email || !loginForRole) {
       return res
-        .status(400)
+        .status(401)
         .json({ status: false, message: "Email and role are required." });
     }
 
@@ -166,7 +166,7 @@ generalAuthRouter.post("/login", async (req, res) => {
     const user = await userCollection.findOne({ email }).lean();
     if (!user) {
       return res
-        .status(401)
+        .status(402)
         .json({ status: false, message: "Invalid credentials." });
     }
 
@@ -175,11 +175,11 @@ generalAuthRouter.post("/login", async (req, res) => {
       algorithm: "HS256",
     });
 
-    res.status(200).json({
+    res.status(200).send({
       status: true,
       message: "Login successful.",
       data: {
-        token,
+        token: token,
         _id: user._id,
         name: user.name,
         email: user.email,
