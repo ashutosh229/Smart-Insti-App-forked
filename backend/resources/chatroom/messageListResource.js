@@ -14,7 +14,7 @@ const messageListRouter = Router();
 messageListRouter.get("/", async (req, res) => {
   try {
     const allMessages = await Message.find({}).lean();
-    res.status(200).json({ status: true, data: allMessages });
+    res.status(200).json({ status: true, data: allMessages }); //data.data
   } catch (err) {
     console.error("Error fetching messages:", err);
     res
@@ -37,7 +37,7 @@ messageListRouter.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ status: false, errors: errors.array() });
+      return res.status(401).json({ status: false, errors: errors.array() });
     }
 
     try {
@@ -50,12 +50,10 @@ messageListRouter.post(
 
       res
         .status(201)
-        .json({ status: true, message: "Message created", data: newMessage });
+        .json({ status: true, message: "Message created", data: newMessage }); //data.data
     } catch (err) {
       console.error("Error saving message:", err);
-      res
-        .status(500)
-        .json({ status: false, message: messages.internalServerError });
+      res.status(400).json({ status: false, message: messages.badRequest });
     }
   }
 );
@@ -85,7 +83,7 @@ messageListRouter.delete(
 
       res.status(200).json({
         status: true,
-        message: "Message deleted successfully",
+        message: messages.deleted, //data.message
         data: deletedMessage,
       });
     } catch (err) {
